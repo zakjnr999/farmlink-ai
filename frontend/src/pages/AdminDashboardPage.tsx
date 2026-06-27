@@ -50,13 +50,13 @@ export function AdminDashboardPage() {
         </div>
         <div className="stat-card">
           <span>Listings</span>
-          <strong>{dashboard.listings.total}</strong>
-          <small>{dashboard.listings.published} published</small>
+          <strong>{dashboard.listings.active ?? dashboard.listings.total ?? 0}</strong>
+          <small>{dashboard.listings.published ?? 'active'} published</small>
         </div>
         <div className="stat-card">
           <span>Offers</span>
-          <strong>{dashboard.offers.total}</strong>
-          <small>{dashboard.offers.pending} pending</small>
+          <strong>{(dashboard.offers.pending ?? 0) + (dashboard.offers.accepted ?? 0)}</strong>
+          <small>{dashboard.offers.pending ?? 0} pending</small>
         </div>
         <div className="stat-card">
           <span>Transactions</span>

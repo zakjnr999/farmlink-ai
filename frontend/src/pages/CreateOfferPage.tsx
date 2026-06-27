@@ -20,9 +20,12 @@ export function CreateOfferPage() {
     if (!listingId) return;
     void (async () => {
       try {
-        const res = await api.call<{ listing: ProduceListing }>('GET', `/listings/${listingId}`);
+        const res = await api.call<{ listing: ProduceListing }>(
+          'GET',
+          `/marketplace/listings/${listingId}`,
+        );
         setListing(res.data.listing);
-        setUnit(res.data.listing.unit);
+        setUnit(res.data.listing.unit.toUpperCase());
         setQuantity(Math.min(10, res.data.listing.availableQuantity));
         if (res.data.listing.pricePerUnit) setPricePerUnit(res.data.listing.pricePerUnit);
       } catch (err) {
