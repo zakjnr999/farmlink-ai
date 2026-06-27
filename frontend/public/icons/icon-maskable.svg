@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="FarmLink maskable">
+  <rect width="512" height="512" fill="#356B45"/>
+  <rect x="80" y="300" width="352" height="20" rx="8" fill="#94BC74" opacity="0.45"/>
+  <rect x="112" y="196" width="112" height="88" rx="12" fill="#BC6A3E"/>
+  <path d="M300 180c20 36 36 64 36 96 0 24-18 42-42 42s-42-18-42-42c0-32 16-60 48-96z" fill="#F4EEDD"/>
+</svg>

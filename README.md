@@ -11,7 +11,7 @@ This is a **monorepo** containing the backend API and the frontend(s).
 ```text
 .
 ├── backend/     # Node + TypeScript + Express + Prisma + PostgreSQL API (see backend/README.md)
-├── frontend/    # Vite + React frontend (see frontend/README.md)
+├── frontend/    # Next.js frontend — Field Journal + Harvest Exchange UI (see frontend/README.md)
 ├── render.yaml  # Render Blueprint: PostgreSQL + backend web service
 └── README.md
 ```
@@ -51,9 +51,9 @@ npm run dev                     # http://localhost:4000  (docs: /api/docs)
 
 # 2. Frontend (in a second terminal)
 cd ../frontend
-cp .env.example .env            # set VITE_API_BASE_URL (local or Render)
+cp .env.example .env.local       # set NEXT_PUBLIC_API_URL (local or Render)
 npm install
-npm run dev                     # http://localhost:5173
+npm run dev                     # http://localhost:3000
 ```
 
 Full backend docs: [`backend/README.md`](backend/README.md). Frontend connection guide:

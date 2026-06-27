@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-field-ink: #1b241d;
+  --color-deep-soil: #40352a;
+  --color-farm-green: #356b45;
+  --color-leaf-green: #66a36f;
+  --color-young-leaf: #94bc74;
+  --color-harvest-gold: #d7a33e;
+  --color-clay-orange: #bc6a3e;
+  --color-tomato-red: #c5533f;
+  --color-dry-grass: #d8c58a;
+  --color-field-cream: #f4eedd;
+  --color-warm-paper: #fcfaf4;
+  --color-morning-mist: #e8ece6;
+  --color-muted-text: #657068;
+  --color-exchange-ink: #18201c;
+  --color-deep-grove: #21362b;
+  --color-market-green: #2f6b45;
+  --color-fresh-leaf: #66a36f;
+  --color-harvest-gold: #d4a13b;
+  --color-basket-clay: #b96b3f;
+  --color-tomato-accent: #c4513e;
+  --color-produce-cream: #f4efe4;
+  --color-cool-mist: #e7eae6;
+  --color-ledger-grey: #68726c;
+  --color-soft-border: #d9ddd7;
+  --font-heading: var(--font-manrope);
+  --font-body: var(--font-inter);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --field-ink: #1b241d;
+  --exchange-ink: #18201c;
+  --deep-grove: #21362b;
+  --market-green: #2f6b45;
+  --produce-cream: #f4efe4;
+  --soft-border: #d9ddd7;
+  --ledger-grey: #68726c;
+  --deep-soil: #40352a;
+  --farm-green: #356b45;
+  --leaf-green: #66a36f;
+  --young-leaf: #94bc74;
+  --harvest-gold: #d7a33e;
+  --clay-orange: #bc6a3e;
+  --tomato-red: #c5533f;
+  --dry-grass: #d8c58a;
+  --field-cream: #f4eedd;
+  --warm-paper: #fcfaf4;
+  --morning-mist: #e8ece6;
+  --muted-text: #657068;
+
+  --background: var(--warm-paper);
+  --foreground: var(--field-ink);
+  --card: var(--warm-paper);
+  --card-foreground: var(--field-ink);
+  --popover: var(--warm-paper);
+  --popover-foreground: var(--field-ink);
+  --primary: var(--farm-green);
+  --primary-foreground: var(--warm-paper);
+  --secondary: var(--field-cream);
+  --secondary-foreground: var(--deep-soil);
+  --muted: var(--morning-mist);
+  --muted-foreground: var(--muted-text);
+  --accent: var(--young-leaf);
+  --accent-foreground: var(--field-ink);
+  --destructive: var(--tomato-red);
+  --destructive-foreground: var(--warm-paper);
+  --border: color-mix(in srgb, var(--deep-soil) 18%, transparent);
+  --input: color-mix(in srgb, var(--deep-soil) 22%, transparent);
+  --ring: var(--leaf-green);
+  --radius: 0.75rem;
+
+  --field-row-color: color-mix(in srgb, var(--farm-green) 6%, transparent);
+  --field-row-height: 3.5rem;
+  --touch-target: 2.75rem;
+}
+
+.dark {
+  --background: var(--field-ink);
+  --foreground: var(--field-cream);
+  --card: color-mix(in srgb, var(--deep-soil) 40%, var(--field-ink));
+  --card-foreground: var(--field-cream);
+  --popover: color-mix(in srgb, var(--deep-soil) 50%, var(--field-ink));
+  --popover-foreground: var(--field-cream);
+  --primary: var(--leaf-green);
+  --primary-foreground: var(--field-ink);
+  --secondary: color-mix(in srgb, var(--deep-soil) 60%, var(--field-ink));
+  --secondary-foreground: var(--field-cream);
+  --muted: color-mix(in srgb, var(--deep-soil) 35%, var(--field-ink));
+  --muted-foreground: color-mix(in srgb, var(--morning-mist) 70%, var(--muted-text));
+  --accent: color-mix(in srgb, var(--farm-green) 50%, var(--field-ink));
+  --accent-foreground: var(--field-cream);
+  --destructive: var(--tomato-red);
+  --destructive-foreground: var(--warm-paper);
+  --border: color-mix(in srgb, var(--morning-mist) 14%, transparent);
+  --input: color-mix(in srgb, var(--morning-mist) 18%, transparent);
+  --ring: var(--young-leaf);
+  --field-row-color: color-mix(in srgb, var(--leaf-green) 8%, transparent);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    background-image: repeating-linear-gradient(
+      0deg,
+      var(--field-row-color) 0,
+      var(--field-row-color) 1px,
+      transparent 1px,
+      transparent var(--field-row-height)
+    );
+    color: var(--foreground);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100dvh;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-manrope), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--young-leaf) 45%, transparent);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-manrope), system-ui, sans-serif;
+  }
+
+  .font-body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
+  .touch-target {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+
+  .field-journal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--field-ink) 4%, transparent),
+      inset 0 1px 0 color-mix(in srgb, white 40%, transparent);
+  }
+
+  .dark .field-journal-card {
+    box-shadow:
+      0 1px 3px color-mix(in srgb, black 25%, transparent),
+      inset 0 1px 0 color-mix(in srgb, white 6%, transparent);
+  }
+
+  .harvest-exchange-surface {
+    background: var(--produce-cream, #f4efe4);
+    border-bottom: 1px solid var(--soft-border, #d9ddd7);
+  }
+
+  .dark .harvest-exchange-surface {
+    background: color-mix(in srgb, var(--exchange-ink, #18201c) 95%, var(--deep-grove, #21362b));
+    border-bottom-color: color-mix(in srgb, var(--cool-mist, #e7eae6) 12%, transparent);
+  }
+
+  .supply-band {
+    border-left: 3px solid var(--market-green, #2f6b45);
+    padding-left: 1rem;
+  }
+
+  .procurement-rule {
+    border-top: 1px solid var(--soft-border, #d9ddd7);
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .exchange-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ledger-grey, #68726c);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

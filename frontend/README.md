@@ -1,104 +1,138 @@
-# FarmLink AI — Frontend
+# FarmLink AI
 
-This folder is the home for the FarmLink AI frontend(s): a mobile-first PWA for farmers and
-responsive web dashboards for buyers and administrators. The backend is a separate service in
-[`../backend`](../backend) and exposes a versioned REST API.
+FarmLink AI connects Ghanaian farmers with restaurants, hotels, schools, market traders, wholesalers and other bulk buyers **before** produce is harvested, expires or goes to waste.
 
-> Pick any stack you like (Vite + React, Next.js, Vue, SvelteKit…). Scaffold it **inside this
-> folder** (e.g. `npm create vite@latest .`). A ready-to-use, framework-agnostic API client and the
-> connection details you need are provided below.
+This repository contains:
 
-## Connecting to the backend
+1. **Farmer Field Journal PWA** — mobile-first farmer app (`/farmer`)
+2. **Buyer Harvest Exchange Dashboard** — web procurement workspace for institutional buyers (`/buyer`)
 
-### 1. Base URL
+## Buyer dashboard purpose
 
-All endpoints live under the versioned base path `/api/v1`.
+Business buyers can:
 
-| Environment | Base URL |
-| --- | --- |
-| Local | `http://localhost:4000/api/v1` |
-| Render | `https://<your-service>.onrender.com/api/v1` |
+- Sign in and complete a business profile
+- Create and manage produce demands
+- Discover available farmer listings
+- Receive AI-ranked supply recommendations with explanations
+- Compare listings and send purchase offers
+- Track offers, transactions, and pickup schedules
+- Review procurement insights and notifications
 
-Set it via an environment variable (see [`.env.example`](./.env.example)). Use your bundler's public
-prefix — `VITE_API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL`, or `REACT_APP_API_BASE_URL`.
+## Technology stack
 
-### 2. Use the provided client
+- Next.js 15 (App Router), TypeScript, Tailwind CSS v4
+- shadcn/ui + Radix UI, Lucide React
+- React Hook Form + Zod
+- TanStack Query, Axios
+- Recharts, next-themes
+- Dexie (IndexedDB — farmer offline drafts)
+- Serwist (service worker / PWA)
+- Sonner toasts
+- Vitest, React Testing Library, Playwright
 
-A typed client lives in [`src/api/`](./src/api). Copy it into your app and use it directly:
+## Folder structure
 
-```ts
-import { FarmLinkClient } from './api/client';
-
-const api = new FarmLinkClient(import.meta.env.VITE_API_BASE_URL);
-
-// Auth (token is stored automatically and attached to later requests)
-await api.login({ identifier: 'farmer@farmlink.local', password: 'FarmerPassword123!' });
-
-// AI extraction → confirm → publish
-const extracted = await api.extractProduce('I have 60 crates of tomatoes ready next Monday at Agogo');
-const listing = await api.createListing({
-  categoryId: extracted.suggestedCategoryId,
-  title: 'Fresh tomatoes in Agogo',
-  description: 'Fresh tomatoes for wholesale.',
-  quantity: extracted.quantity,
-  unit: extracted.unit,
-  harvestDate: extracted.harvestDate,
-  availableFrom: extracted.availableFrom,
-  region: 'Ashanti', district: 'Asante Akim North', town: 'Agogo',
-  latitude: 6.8001, longitude: -1.0819,
-  sourceType: 'VOICE_TRANSCRIPTION',
-});
-await api.publishListing(listing.id);
-const matches = await api.getListingMatches(listing.id);
+```text
+src/
+├── app/
+│   ├── (auth)/              # Farmer & buyer login
+│   ├── (farmer-app)/        # Farmer PWA routes
+│   ├── (farmer-onboarding)/
+│   ├── (buyer-dashboard)/   # Buyer workspace routes
+│   └── (buyer-onboarding)/
+├── components/              # UI, brand, charts, commerce, navigation
+├── features/                # Domain modules per portal
+├── lib/                     # API client, auth, demo, formatting
+├── providers/
+├── constants/
+└── types/
 ```
 
-### 3. Authentication
+## Installation
 
-- `POST /auth/register` and `POST /auth/login` return `{ user, accessToken }`.
-- Send the token as a header on protected routes: `Authorization: Bearer <accessToken>`.
-- `GET /auth/me` returns the current user.
-- Roles: `FARMER`, `BUYER`, `ADMIN`. Public registration only allows `FARMER`/`BUYER`.
-
-### 4. Response envelope
-
-Every response uses a consistent shape:
-
-```jsonc
-// success
-{ "success": true, "message": "...", "data": { /* ... */ }, "meta": null }
-// paginated
-{ "success": true, "message": "...", "data": { "listings": [] },
-  "meta": { "page": 1, "limit": 20, "total": 100, "totalPages": 5, "hasNextPage": true, "hasPreviousPage": false } }
-// error
-{ "success": false, "message": "Validation failed",
-  "error": { "code": "VALIDATION_ERROR", "details": [] }, "requestId": "..." }
+```bash
+cd farmlink-ai
+cp .env.example .env.local
+npm install
 ```
 
-The client throws `FarmLinkApiError` (with `status`, `code`, `message`, `details`, `requestId`) on any
-non-success response.
+## Environment variables
 
-### 5. CORS
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Backend base URL (default `http://localhost:4000/api/v1`) |
+| `NEXT_PUBLIC_ENABLE_DEMO_MODE` | Set to `true` for demo data without a live backend |
 
-The backend only allows origins listed in its `CORS_ORIGINS` env var. Add your frontend dev and
-production URLs there (e.g. `http://localhost:5173,https://your-frontend.onrender.com`).
+## Development commands
 
-### 6. Interactive API reference
+```bash
+npm run dev          # Start dev server
+npm run typecheck    # TypeScript
+npm run lint         # ESLint
+npm run test         # Vitest unit tests
+npm run test:e2e     # Playwright (requires dev server)
+npm run build        # Production build
+```
 
-- Swagger UI: `<base host>/api/docs`
-- OpenAPI JSON: `<base host>/api/docs.json` — generate a typed SDK from this if you prefer.
+## Authentication
 
-## Key flows by role
+### Farmer (`/farmer/login`)
 
-- **Farmer**: profile → `/listings/extract` → `/listings` → `/listings/:id/publish` →
-  `/listings/:id/matches`, manage offers via `/farmers/offers/...`.
-- **Buyer**: profile → `/buyers/demands` → `/buyers/recommendations` and `/marketplace/listings` →
-  `POST /offers` → `/buyers/offers`, `/buyers/transactions`.
-- **Admin**: `/admin/dashboard`, `/admin/users`, `/admin/listings`, `/admin/audit-logs`.
+1. `POST /auth/login` → `GET /auth/me`
+2. Role must be `farmer`
+3. Incomplete profile → `/farmer/onboarding`
+4. Complete profile → `/farmer`
 
-## Demo credentials (development only)
+### Buyer (`/buyer/login`)
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@farmlink.local` | `AdminPassword123!` |
-| Farmer | `farmer@farmlink.local` | `FarmerPassword123!` |
-| Buyer | `buyer@farmlink.local` | `BuyerPassword123!` |
+1. `POST /auth/login` → `GET /auth/me`
+2. Role must be `buyer`
+3. Incomplete profile → `/buyer/onboarding`
+4. Complete profile → `/buyer`
+
+## Demo mode
+
+With `NEXT_PUBLIC_ENABLE_DEMO_MODE=true`, API calls route to local demo handlers. A **Demo mode** indicator is shown.
+
+| Portal | Demo account | Password |
+|--------|--------------|----------|
+| Farmer | `kwame.mensah@example.com` or `0244123456` | Any 6+ characters |
+| Buyer | `orders@goldenspoon.gh` or `0244555667` | Any 6+ characters |
+
+Demo buyer: **Golden Spoon Restaurant**, Kumasi — tomato demand, Agogo listing, pending offer.
+
+## Main buyer routes
+
+| Route | Purpose |
+|-------|---------|
+| `/buyer` | Supply Desk overview |
+| `/buyer/marketplace` | Discover produce |
+| `/buyer/recommendations` | AI-ranked supply |
+| `/buyer/demands` | Manage procurement demands |
+| `/buyer/offers` | Sent offers |
+| `/buyer/transactions` | Confirmed deals |
+| `/buyer/pickups` | Pickup schedule |
+| `/buyer/insights` | Procurement analytics |
+| `/buyer/notifications` | Operational alerts |
+| `/buyer/profile` | Business profile |
+| `/buyer/settings` | Preferences |
+| `/buyer/compare` | Listing comparison (client-side) |
+
+## Design systems
+
+- Farmer: **The Field Journal** — see farmer UI tokens in `globals.css`
+- Buyer: **The Harvest Exchange** — see [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
+
+## Tests
+
+Unit tests cover auth schemas, buyer onboarding, demands, and match-score formatting without a production backend.
+
+## Known limitations
+
+See [INTEGRATION_GAPS.md](./INTEGRATION_GAPS.md). Payment settlement, push notifications, and several settings are not yet backed by API endpoints.
+
+## Branches
+
+- Farmer PWA: `feature/farmlink-farmer-pwa`
+- Buyer dashboard: `feature/farmlink-buyer-dashboard`

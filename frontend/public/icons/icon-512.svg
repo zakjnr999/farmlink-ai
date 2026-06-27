@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="FarmLink">
+  <rect width="512" height="512" rx="96" fill="#F4EEDD"/>
+  <rect x="64" y="320" width="384" height="24" rx="8" fill="#94BC74" opacity="0.5"/>
+  <rect x="64" y="360" width="384" height="24" rx="8" fill="#66A36F" opacity="0.45"/>
+  <rect x="96" y="176" width="128" height="96" rx="12" fill="#BC6A3E"/>
+  <rect x="104" y="184" width="112" height="12" rx="4" fill="#D7A33E" opacity="0.6"/>
+  <path d="M320 160c24 40 40 72 40 112 0 28-20 48-48 48s-48-20-48-48c0-40 16-72 56-112z" fill="#356B45"/>
+  <circle cx="352" cy="248" r="16" fill="#D7A33E"/>
+</svg>
