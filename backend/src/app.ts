@@ -12,6 +12,7 @@ import { notFound } from './middlewares/not-found.middleware';
 import { errorHandler } from './middlewares/error.middleware';
 import { apiRouter } from './routes';
 import { healthRouter } from './modules/health/health.routes';
+import { isAllowedCorsOrigin } from './utils/cors-origin';
 
 export function createApp(): Application {
   const app = express();
@@ -28,11 +29,13 @@ export function createApp(): Application {
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || env.corsOrigins.includes(origin) || env.corsOrigins.includes('*')) {
+        // Same-origin or server-to-server requests may omit Origin.
+        if (!origin || isAllowedCorsOrigin(origin, env.corsOrigins)) {
           callback(null, true);
           return;
         }
-        callback(new Error('Not allowed by CORS'));
+        logger.warn({ origin, allowedOrigins: env.corsOrigins }, 'CORS origin rejected');
+        callback(null, false);
       },
       credentials: true,
     }),
