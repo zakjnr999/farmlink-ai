@@ -1,0 +1,416 @@
+// FarmLink AI - Prisma schema
+// Ghana-focused agricultural marketplace and produce-matching platform.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  FARMER
+  BUYER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BuyerType {
+  RESTAURANT
+  HOTEL
+  SCHOOL
+  SUPERMARKET
+  MARKET_TRADER
+  WHOLESALER
+  PROCESSOR
+  INDIVIDUAL
+  OTHER
+}
+
+enum ProduceUnit {
+  KG
+  TONNE
+  CRATE
+  BAG
+  BOX
+  BUNCH
+  PIECE
+  BASKET
+  SACK
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PARTIALLY_RESERVED
+  RESERVED
+  SOLD
+  EXPIRED
+  CANCELLED
+}
+
+enum ListingSourceType {
+  FORM
+  TEXT
+  VOICE_TRANSCRIPTION
+  ADMIN
+}
+
+enum RecommendationStatus {
+  RECOMMENDED
+  VIEWED
+  DISMISSED
+  OFFERED
+  CONVERTED
+  EXPIRED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+  COMPLETED
+}
+
+enum TransactionStatus {
+  CONFIRMED
+  AWAITING_PICKUP
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum TransportPoolStatus {
+  SUGGESTED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum NotificationType {
+  MATCH_FOUND
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  LISTING_EXPIRING
+  TRANSPORT_POOL_FOUND
+  ACCOUNT_UPDATE
+  SYSTEM
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id             String        @id @default(uuid())
+  fullName       String
+  phoneNumber    String        @unique
+  email          String?       @unique
+  passwordHash   String
+  role           UserRole
+  accountStatus  AccountStatus @default(ACTIVE)
+  phoneVerified  Boolean       @default(false)
+  profileImageUrl String?
+  lastLoginAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  farmerProfile FarmerProfile?
+  buyerProfile  BuyerProfile?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+  @@index([accountStatus])
+  @@index([createdAt])
+}
+
+model FarmerProfile {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farmName           String
+  description        String?
+  region             String
+  district           String
+  town               String
+  latitude           Float
+  longitude          Float
+  primaryCrops       String[]
+  farmSizeAcres      Float?
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  listings ProduceListing[]
+
+  @@index([region])
+  @@index([verificationStatus])
+}
+
+model BuyerProfile {
+  id                      String             @id @default(uuid())
+  userId                  String             @unique
+  user                    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName            String
+  buyerType               BuyerType
+  description             String?
+  region                  String
+  district                String
+  town                    String
+  latitude                Float
+  longitude               Float
+  preferredProduce        String[]
+  minimumOrderQuantity    Float?
+  maximumTravelDistanceKm Float              @default(100)
+  verificationStatus      VerificationStatus @default(UNVERIFIED)
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  demands         BuyerDemand[]
+  recommendations MatchRecommendation[]
+  offers          Offer[]
+  transactions    ProduceTransaction[]
+
+  @@index([region])
+  @@index([buyerType])
+  @@index([verificationStatus])
+}
+
+model ProduceCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  unitOptions ProduceUnit[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings ProduceListing[]
+  demands  BuyerDemand[]
+
+  @@index([isActive])
+}
+
+model ProduceListing {
+  id                    String            @id @default(uuid())
+  farmerId              String
+  farmer                FarmerProfile     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  categoryId            String
+  category              ProduceCategory   @relation(fields: [categoryId], references: [id])
+  title                 String
+  description           String
+  quantity              Decimal           @db.Decimal(12, 2)
+  reservedQuantity      Decimal           @default(0) @db.Decimal(12, 2)
+  unit                  ProduceUnit
+  minimumOrderQuantity  Decimal           @default(1) @db.Decimal(12, 2)
+  pricePerUnit          Decimal?          @db.Decimal(12, 2)
+  currency              String            @default("GHS")
+  harvestDate           DateTime
+  availableFrom         DateTime
+  availableUntil        DateTime?
+  qualityGrade          String?
+  farmingMethod         String?
+  region                String
+  district              String
+  town                  String
+  latitude              Float
+  longitude             Float
+  status                ListingStatus     @default(DRAFT)
+  sourceType            ListingSourceType @default(FORM)
+  rawInputText          String?
+  aiExtractionConfidence Float?
+  transportPoolEligible Boolean           @default(true)
+  publishedAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  recommendations    MatchRecommendation[]
+  offers             Offer[]
+  transactions       ProduceTransaction[]
+  primaryPools       TransportPoolSuggestion[] @relation("PrimaryListing")
+  secondaryPools     TransportPoolSuggestion[] @relation("SecondaryListing")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([farmerId])
+  @@index([region])
+  @@index([harvestDate])
+  @@index([createdAt])
+  @@index([status, categoryId])
+}
+
+model BuyerDemand {
+  id                    String          @id @default(uuid())
+  buyerId               String
+  buyer                 BuyerProfile    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  categoryId            String
+  category              ProduceCategory @relation(fields: [categoryId], references: [id])
+  minimumQuantity       Decimal         @db.Decimal(12, 2)
+  maximumQuantity       Decimal?        @db.Decimal(12, 2)
+  unit                  ProduceUnit
+  preferredPriceMaximum Decimal?        @db.Decimal(12, 2)
+  requiredFrom          DateTime?
+  requiredUntil         DateTime?
+  preferredRegions      String[]
+  isRecurring           Boolean         @default(false)
+  frequency             String?
+  isActive              Boolean         @default(true)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([buyerId])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model MatchRecommendation {
+  id            String               @id @default(uuid())
+  listingId     String
+  listing       ProduceListing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId       String
+  buyer         BuyerProfile         @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  score         Float
+  produceScore  Float
+  quantityScore Float
+  distanceScore Float
+  dateScore     Float
+  priceScore    Float
+  explanation   String
+  status        RecommendationStatus @default(RECOMMENDED)
+  generatedAt   DateTime             @default(now())
+  viewedAt      DateTime?
+
+  @@unique([listingId, buyerId])
+  @@index([buyerId, status])
+  @@index([listingId])
+  @@index([score])
+}
+
+model Offer {
+  id                  String      @id @default(uuid())
+  listingId           String
+  listing             ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId             String
+  buyer               BuyerProfile   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  offeredQuantity     Decimal     @db.Decimal(12, 2)
+  unit                ProduceUnit
+  offeredPricePerUnit Decimal     @db.Decimal(12, 2)
+  totalAmount         Decimal     @db.Decimal(14, 2)
+  message             String?
+  proposedPickupDate  DateTime
+  status              OfferStatus @default(PENDING)
+  expiresAt           DateTime?
+  acceptedAt          DateTime?
+  rejectedAt          DateTime?
+  cancelledAt         DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  transaction ProduceTransaction?
+
+  @@index([listingId, status])
+  @@index([buyerId, status])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProduceTransaction {
+  id                 String            @id @default(uuid())
+  offerId            String            @unique
+  offer              Offer             @relation(fields: [offerId], references: [id])
+  listingId          String
+  listing            ProduceListing    @relation(fields: [listingId], references: [id])
+  farmerId           String
+  buyerId            String
+  buyer              BuyerProfile      @relation(fields: [buyerId], references: [id])
+  agreedQuantity     Decimal           @db.Decimal(12, 2)
+  unit               ProduceUnit
+  agreedPricePerUnit Decimal           @db.Decimal(12, 2)
+  totalAmount        Decimal           @db.Decimal(14, 2)
+  pickupDate         DateTime
+  status             TransactionStatus @default(CONFIRMED)
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([farmerId])
+  @@index([buyerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model TransportPoolSuggestion {
+  id                        String              @id @default(uuid())
+  primaryListingId          String
+  primaryListing            ProduceListing      @relation("PrimaryListing", fields: [primaryListingId], references: [id], onDelete: Cascade)
+  secondaryListingId        String
+  secondaryListing          ProduceListing      @relation("SecondaryListing", fields: [secondaryListingId], references: [id], onDelete: Cascade)
+  distanceBetweenFarmsKm    Float
+  destinationSimilarityScore Float
+  estimatedSavingsPercentage Float?
+  explanation               String
+  status                    TransportPoolStatus @default(SUGGESTED)
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+
+  @@unique([primaryListingId, secondaryListingId])
+  @@index([status])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorUserId String?
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

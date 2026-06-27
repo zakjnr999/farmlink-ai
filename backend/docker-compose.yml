@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: farmlink-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: farmlink
+    ports:
+      - '5432:5432'
+    volumes:
+      - farmlink_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d farmlink']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional API service. Enable with: docker compose --profile app up --build
+  api:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: farmlink-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/farmlink?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-in-production-please-32chars}
+      JWT_ACCESS_EXPIRES_IN: 1d
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      LOG_LEVEL: info
+      AI_PROVIDER: local
+    ports:
+      - '4000:4000'
+
+volumes:
+  farmlink_pgdata:
