@@ -11,7 +11,7 @@ This is a **monorepo** containing the backend API and the frontend(s).
 ```text
 .
 ├── backend/     # Node + TypeScript + Express + Prisma + PostgreSQL API (see backend/README.md)
-├── frontend/    # Frontend apps + API connection kit (see frontend/README.md)
+├── frontend/    # Vite + React frontend (see frontend/README.md)
 ├── render.yaml  # Render Blueprint: PostgreSQL + backend web service
 └── README.md
 ```
@@ -49,10 +49,11 @@ npm run prisma:deploy
 npm run prisma:seed
 npm run dev                     # http://localhost:4000  (docs: /api/docs)
 
-# 2. Frontend (in a second terminal) — scaffold your app of choice here
+# 2. Frontend (in a second terminal)
 cd ../frontend
-cp .env.example .env            # set VITE_API_BASE_URL=http://localhost:4000/api/v1
-# e.g. npm create vite@latest .  then copy src/api into your app
+cp .env.example .env            # set VITE_API_BASE_URL (local or Render)
+npm install
+npm run dev                     # http://localhost:5173
 ```
 
 Full backend docs: [`backend/README.md`](backend/README.md). Frontend connection guide:
